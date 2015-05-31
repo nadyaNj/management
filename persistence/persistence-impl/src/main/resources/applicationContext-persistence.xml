@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/data/jpa
+       http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd"
+       default-autowire="byName" default-lazy-init="true">
+
+
+    <!--data source-->
+
+    <bean id="dataSourceMain" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close" lazy-init="true">
+        <property name="driverClass" value="#{managementApplicationProperties['jdbc.driver']}"/>
+        <property name="jdbcUrl" value="#{managementApplicationProperties['jdbc.url']}"/>
+        <property name="user" value="#{managementApplicationProperties['jdbc.username']}"/>
+        <property name="password" value="#{managementApplicationProperties['jdbc.password']}"/>
+        <property name="acquireIncrement" value="#{managementApplicationProperties['c3p0.acquire_increment']}"/>
+        <property name="initialPoolSize" value="#{managementApplicationProperties['c3p0.initialSize']}"/>
+        <property name="maxPoolSize" value="#{managementApplicationProperties['c3p0.maxActive']}"/>
+        <property name="maxStatements" value="#{managementApplicationProperties['c3p0.maxStatements']}"/>
+    </bean>
+
+    <bean id="dataSource" class="org.jdbcdslog.ConnectionPoolDataSourceProxy">
+        <property name="targetDSDirect" ref="dataSourceMain"/>
+    </bean>
+
+    <!--Getting jpa repository-->
+
+    <jpa:repositories base-package="com.home.management.persistence.repository" repository-impl-postfix="Impl"/>
+
+    <!--jpa adapter-->
+
+    <bean id="jpaVendorAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+        <property name="databasePlatform" value="#{managementApplicationProperties['hibernate.dialect']}"/>
+        <property name="showSql" value="#{managementApplicationProperties['hibernate.show_sql']}"/>
+        <property name="generateDdl" value="#{managementApplicationProperties['hibernate.generateDdl']}"/>
+    </bean>
+
+    <!--Initializing Entity Manager Factory-->
+
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="persistenceUnitName" value="com_home_management_persistence_unit"/>
+        <property name="jpaVendorAdapter" ref="jpaVendorAdapter"/>
+        <property name="jpaProperties">
+            <props>
+                <prop key="hibernate.ejb.naming_strategy">org.hibernate.cfg.ImprovedNamingStrategy</prop>
+                <prop key="hibernate.format_sql">#{managementApplicationProperties['hibernate.format_sql']}</prop>
+                <prop key="hibernate.hbm2ddl.auto">#{managementApplicationProperties['hibernate.hbm2ddl.auto']}</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!--Initializing transaction manager-->
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+</beans>
