@@ -27,8 +27,6 @@ public abstract class AbstractServiceImpl<T extends AbstractEntityModel> impleme
 
         // TODO: before return entity log about successfully getting and log entity + id
 
-
-
         return getRepository().findOne(id);
     }
 
