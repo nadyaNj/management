@@ -17,7 +17,6 @@ public abstract class AbstractServiceImpl<T extends AbstractEntityModel> impleme
 
     //TODO: add logger
 
-
     @Nullable
     @Override
     public T getById(@Nonnull final Long id) {
